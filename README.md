@@ -32,6 +32,10 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
    1. [Understanding Kafka's Sticky Partitioner](#71-understanding-kafkas-sticky-partitioner)
    2. [Code Implementation](#72-code-implementation)
    3. [Running the Callback Producer](#73-running-the-callback-producer)
+8. [Kafka Producer with Keys](#8-kafka-producer-with-keys)
+   1. [Sending Messages with Keys](#81-sending-messages-with-keys)
+   2. [Code Implementation](#82-code-implementation)
+   3. [Verifying Key-Based Partitioning](#83-verifying-key-based-partitioning)
 
 ---
 
@@ -403,3 +407,99 @@ To run this code, follow these steps:
 2. **Create the topic** `demo_java` if not already created.
 3. **Run the `ProducerDemoWithCallback`** class from IntelliJ IDEA.
 4. **Monitor the output** to see which partitions the messages are sent to and verify the Sticky Partitioner behavior.
+
+## 8. Kafka Producer with Keys
+
+### 8.1. Sending Messages with Keys
+
+In Kafka, when you send messages with non-null keys, those messages with the same key are consistently routed to the same partition. This behavior is particularly useful when you need ordering guarantees for messages with the same key.
+
+### 8.2. Code Implementation
+
+Here is the code for a Kafka producer that sends messages with keys:
+
+```java
+package org.example.kafka;
+
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+public class ProducerDemoKeys {
+
+    private static final Logger log = LoggerFactory.getLogger(ProducerDemoKeys.class.getSimpleName());
+    public static void main(String[] args) {
+        log.info("I'm a Kafka Producer!");
+
+        // create Producer Properties
+        Properties properties = new Properties();
+
+        //connect to localhost
+        properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
+
+        //connect to Conduktor playground
+//        properties.setProperty("bootstrap.server", "cluster.playground.cdkt.io:9092");
+//        properties.setProperty("security.protocol", "SASL_SSL");
+//        properties.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"alice\" password=\"alice-secret\";");
+//        properties.setProperty("sasl.mechanism", "PLAIN");
+
+        // set Producer properties
+        properties.setProperty("key.serializer", StringSerializer.class.getName());
+        properties.setProperty("value.serializer", StringSerializer.class.getName());
+
+        // create the Producer
+        KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
+
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 10; i++) {
+
+                String topic = "demo_java";
+                String key = "id_" + i;
+                String value = "hello from demo_java topic " + i;
+
+                // create a Producer Record
+                ProducerRecord<String, String> producerRecord =
+                        new ProducerRecord<>(topic, key, value);
+
+                // send data
+                producer.send(producerRecord, new Callback() {
+                    @Override
+                    public void onCompletion(RecordMetadata metadata, Exception e) {
+                        // this will be executed every time a record was successfully sent or an exception is thrown
+                        if (e == null) {
+                            // the record was successfully sent
+                            log.info("Key: " + key + " | Partition: " + metadata.partition());
+                        } else {
+                            log.error("Error while producing", e);
+                        }
+                    }
+                });
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // flush: tell the producer to send all data and block until done -- synchronous
+        producer.flush();
+
+        // close the producer
+        producer.close();
+    }
+}
+```
+
+### 8.3. Verifying Key-Based Partitioning
+
+When you run this code, you will notice that messages with the same key are consistently sent to the same partition. This is a crucial feature for maintaining message order when processing data in Kafka.
+
+To observe this behavior, run the `ProducerDemoKeys` class and check the console output. You should see that the same keys always go to the same partition, as illustrated by the log messages.
