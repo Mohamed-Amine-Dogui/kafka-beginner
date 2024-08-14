@@ -4,32 +4,34 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
 
 ### Table of Contents
 
-```markdown
 1. [Kafka Java Project Setup Guide](#1-kafka-java-project-setup-guide)
-    1. [Prerequisites](#11-prerequisites)
-    2. [Setting Up the Project](#12-setting-up-the-project)
-        1. [Create a New Project in IntelliJ IDEA](#121-create-a-new-project-in-intellij-idea)
-        2. [Configure Project Settings](#122-configure-project-settings)
-    3. [Adding Dependencies](#13-adding-dependencies)
-    4. [Final Project Setup Steps](#14-final-project-setup-steps)
-    5. [Verifying the Setup](#15-verifying-the-setup)
+   1. [Prerequisites](#11-prerequisites)
+   2. [Setting Up the Project](#12-setting-up-the-project)
+      1. [Create a New Project in IntelliJ IDEA](#121-create-a-new-project-in-intellij-idea)
+      2. [Configure Project Settings](#122-configure-project-settings)
+   3. [Adding Dependencies](#13-adding-dependencies)
+      1. [Configure Subprojects](#131-configure-subprojects)
+      2. [Add Kafka Dependencies](#132-add-kafka-dependencies)
+   4. [Final Project Setup Steps](#14-final-project-setup-steps)
+   5. [Verifying the Setup](#15-verifying-the-setup)
+      1. [Create a Java Class](#151-create-a-java-class)
+      2. [Write and Run a Basic Java Program](#152-write-and-run-a-basic-java-program)
+      3. [Configure IntelliJ IDEA for Building](#153-configure-intellij-idea-for-building)
 2. [Starting Kafka and Creating a Topic](#2-starting-kafka-and-creating-a-topic)
-    1. [Start Zookeeper](#21-start-zookeeper)
-    2. [Start Kafka](#22-start-kafka)
-    3. [Create the Kafka Topic](#23-create-the-kafka-topic)
+   1. [Start Zookeeper](#21-start-zookeeper)
+   2. [Start Kafka](#22-start-kafka)
+   3. [Create the Kafka Topic](#23-create-the-kafka-topic)
 3. [Creating Your First Kafka Producer](#3-creating-your-first-kafka-producer)
-    1. [Setup Producer Properties](#31-setup-producer-properties)
-    2. [Create and Configure the Producer](#32-create-and-configure-the-producer)
-    3. [Send Data to Kafka](#33-send-data-to-kafka)
+   1. [Setup Producer Properties](#31-setup-producer-properties)
+   2. [Create and Configure the Producer](#32-create-and-configure-the-producer)
+   3. [Send Data to Kafka](#33-send-data-to-kafka)
 4. [Verifying Data Reception](#4-verifying-data-reception)
 5. [Running the Producer](#5-running-the-producer)
 6. [Code Overview](#6-code-overview)
 7. [Implementing a Kafka Producer with Callbacks](#7-implementing-a-kafka-producer-with-callbacks)
-    1. [Understanding Kafka's Sticky Partitioner](#71-understanding-kafkas-sticky-partitioner)
-    2. [Code Implementation](#72-code-implementation)
-    3. [Running the Callback Producer](#73-running-the-callback-producer)
-```
-
+   1. [Understanding Kafka's Sticky Partitioner](#71-understanding-kafkas-sticky-partitioner)
+   2. [Code Implementation](#72-code-implementation)
+   3. [Running the Callback Producer](#73-running-the-callback-producer)
 
 ---
 
