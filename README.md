@@ -12,7 +12,17 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
     3. [Adding Dependencies](#13-adding-dependencies)
     4. [Final Project Setup Steps](#14-final-project-setup-steps)
     5. [Verifying the Setup](#15-verifying-the-setup)
-2. [Next Steps](#2-next-steps)
+2. [Starting Kafka and Creating a Topic](#2-starting-kafka-and-creating-a-topic)
+    1. [Start Zookeeper](#21-start-zookeeper)
+    2. [Start Kafka](#22-start-kafka)
+    3. [Create the Kafka Topic](#23-create-the-kafka-topic)
+3. [Creating Your First Kafka Producer](#3-creating-your-first-kafka-producer)
+    1. [Setup Producer Properties](#31-setup-producer-properties)
+    2. [Create and Configure the Producer](#32-create-and-configure-the-producer)
+    3. [Send Data to Kafka](#33-send-data-to-kafka)
+4. [Verifying Data Reception](#4-verifying-data-reception)
+5. [Running the Producer](#5-running-the-producer)
+6. [Code Overview](#6-code-overview)
 
 ---
 
@@ -68,7 +78,6 @@ dependencies {
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     implementation 'org.slf4j:slf4j-api:2.0.16'
 
-
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
     implementation 'org.slf4j:slf4j-simple:2.0.16'
 }
@@ -112,3 +121,158 @@ public class ProducerDemo {
 1. Go to **IntelliJ IDEA > Preferences > Build, Execution, Deployment > Build Tools > Gradle**.
 2. Under **Build and run using**, select **IntelliJ IDEA**.
 3. Apply the changes and run the `ProducerDemo` class again to confirm everything works correctly.
+
+---
+
+## 2. Starting Kafka and Creating a Topic
+
+Before running the Kafka producer, you need to start Zookeeper and Kafka, and then create the topic you'll be sending messages to.
+
+### 2.1. Start Zookeeper
+
+Start Zookeeper by running the following command:
+
+```bash
+zookeeper-server-start.sh ~/kafka_2.13-3.8.0/config/zookeeper.properties
+```
+
+### 2.2. Start Kafka
+
+Once Zookeeper is running, start the Kafka broker:
+
+```bash
+kafka-server-start.sh ~/kafka_2.13-3.8.0/config/server.properties
+```
+
+### 2.3. Create the Kafka Topic
+
+Create the topic `demo_java` where the producer will send messages:
+
+```bash
+kafka-topics.sh --bootstrap-server localhost:9092 --topic demo_java --create --partitions 3 --replication-factor 1
+```
+
+This command creates a topic named `demo_java` with 3 partitions and a replication factor of 1.
+
+---
+
+## 3. Creating Your First Kafka Producer
+
+### 3.1. Setup Producer Properties
+
+In your `ProducerDemo` class, you will first define the properties required to configure your Kafka producer. These properties include the bootstrap server and serializers for keys and values.
+
+```java
+// create Producer Properties
+Properties properties = new Properties();
+
+//connect to localhost
+properties.setProperty("bootstrap.server", "127.0.0.1:9092");
+
+// Set Producer properties
+properties.setProperty("key.serializer", StringSerializer.class.getName());
+properties.setProperty("value.serializer", StringSerializer.class.getName());
+```
+
+### 3.2. Create and Configure the Producer
+
+With the properties set, you can now create and configure the Kafka producer. The producer will be responsible for sending messages to a specific Kafka topic.
+
+```java
+// create the Producer
+KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
+```
+
+### 3.3. Send Data to Kafka
+
+Create a producer record that contains the topic name and the message you want to send. Then, use the producer to send this record to the Kafka broker.
+
+```java
+// create a Producer Record
+ProducerRecord<String, String> producerRecord =
+        new ProducerRecord<>("demo_java", "hello from demo_java topic");
+
+// send data
+producer.send(producerRecord);
+
+//  flush: tell the producer to send all data and block until done --synchronous
+producer.flush();
+
+// close the producer
+producer.close();
+```
+
+---
+
+## 4. Verifying Data Reception
+
+To confirm that the data was successfully sent to Kafka, you can use a Kafka Console Consumer. Open a terminal and run the following command:
+
+```bash
+kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic demo_java --from-beginning
+```
+
+This command will display all messages sent to the `demo_java` topic, including the `"hello from demo_java topic"` message you sent using your producer.
+
+---
+
+## 5. Running the Producer
+
+1. Ensure that your Kafka broker is running on `localhost:9092`.
+2. Run the `ProducerDemo` class from IntelliJ IDEA.
+3. Check the terminal where your Kafka Console Consumer is
+
+running to verify that the message has been received.
+
+---
+
+## 6. Code Overview
+
+Here is the complete code for your `ProducerDemo` class:
+
+```java
+package org.example.kafka;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+public class ProducerDemo {
+
+    private static final Logger log = LoggerFactory.getLogger(ProducerDemo.class.getSimpleName());
+
+    public static void main(String[] args) {
+        log.info("Hello world");
+
+        // create Producer Properties
+        Properties properties = new Properties();
+
+        //connect to localhost
+        properties.setProperty("bootstrap.server", "127.0.0.1:9092");
+
+        // set Producer properties
+        properties.setProperty("key.serializer", StringSerializer.class.getName());
+        properties.setProperty("value.serializer", StringSerializer.class.getName());
+
+        // create the Producer
+        KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
+
+        // create a Producer Record
+        ProducerRecord<String, String> producerRecord =
+                new ProducerRecord<>("demo_java", "hello from demo_java topic");
+
+        // send data
+        producer.send(producerRecord);
+
+        //  flush: tell the producer to send all data and block until done --synchronous
+        producer.flush();
+
+        // close the producer
+        producer.close();
+    }
+}
+```
