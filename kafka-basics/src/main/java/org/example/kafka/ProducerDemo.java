@@ -18,7 +18,7 @@ public class ProducerDemo {
         Properties properties = new Properties();
 
         //connect to localhost
-        properties.setProperty("bootstrap.server", "127.0.0.1:9092");
+        properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
 
         //connect to Conduktor playground
 //        properties.setProperty("bootstrap.server", "cluster.playground.cdkt.io:9092");
