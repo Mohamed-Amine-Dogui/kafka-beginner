@@ -2,8 +2,9 @@
 
 This guide will walk you through setting up a Kafka project using Java, Gradle, and IntelliJ IDEA, including all necessary dependencies and initial configurations.
 
-## Table of Contents
+### Table of Contents
 
+```markdown
 1. [Kafka Java Project Setup Guide](#1-kafka-java-project-setup-guide)
     1. [Prerequisites](#11-prerequisites)
     2. [Setting Up the Project](#12-setting-up-the-project)
@@ -23,6 +24,12 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
 4. [Verifying Data Reception](#4-verifying-data-reception)
 5. [Running the Producer](#5-running-the-producer)
 6. [Code Overview](#6-code-overview)
+7. [Implementing a Kafka Producer with Callbacks](#7-implementing-a-kafka-producer-with-callbacks)
+    1. [Understanding Kafka's Sticky Partitioner](#71-understanding-kafkas-sticky-partitioner)
+    2. [Code Implementation](#72-code-implementation)
+    3. [Running the Callback Producer](#73-running-the-callback-producer)
+```
+
 
 ---
 
@@ -284,3 +291,111 @@ public class ProducerDemo {
    }
 }
 ```
+
+#### 7. Implementing a Kafka Producer with Callbacks
+
+### 7.1. Understanding Kafka's Sticky Partitioner
+
+When producing messages to Kafka, you can use a callback mechanism to confirm whether the message was successfully sent and to which partition and offset it was sent. Additionally, Kafka's producer uses a feature called the **Sticky Partitioner** to improve performance by batching messages that are sent in quick succession to the same partition.
+
+Here’s a visual representation of how the **Sticky Partitioner** works compared to the **RoundRobin Partitioner**:
+
+**RoundRobin Partitioner:**
+![RoundRobin Partitioner](./images/round_robin.png)
+
+**Sticky Partitioner:**
+![Sticky Partitioner](./images/sticky_partitioner.png)
+
+### 7.2. Code Implementation
+
+Below is the code for implementing a Kafka producer with callbacks to demonstrate the Sticky Partitioner:
+
+```java
+package org.example.kafka;
+
+import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+public class ProducerDemoWithCallback {
+
+    private static final Logger log = LoggerFactory.getLogger(ProducerDemoWithCallback.class.getSimpleName());
+
+    public static void main(String[] args) {
+        log.info("I'm a Kafka Producer!");
+
+        // create Producer Properties
+        Properties properties = new Properties();
+
+        //connect to localhost
+        properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
+
+        //connect to Conduktor playground
+//        properties.setProperty("bootstrap.servers", "cluster.playground.cdkt.io:9092");
+//        properties.setProperty("security.protocol", "SASL_SSL");
+//        properties.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"alice\" password=\"alice-secret\";");
+//        properties.setProperty("sasl.mechanism", "PLAIN");
+
+        // set Producer properties
+        properties.setProperty("key.serializer", StringSerializer.class.getName());
+        properties.setProperty("value.serializer", StringSerializer.class.getName());
+        properties.setProperty("batch.size", "400");
+
+        // Uncomment the following line to use RoundRobinPartitioner instead of the default Sticky Partitioner
+        // properties.setProperty("partitioner.class", RoundRobinPartitioner.class.getName());
+
+        // create the Producer
+        KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
+
+        for (int j = 0; j < 10; j++) {
+            for (int i = 0; i < 30; i++) {
+                // create a Producer Record
+                ProducerRecord<String, String> producerRecord =
+                        new ProducerRecord<>("demo_java", "hello from demo_java topic " + i);
+
+                // send data
+                producer.send(producerRecord, new Callback() {
+                    @Override
+                    public void onCompletion(RecordMetadata metadata, Exception e) {
+                        // this will be executed every time a record was successfully sent or an exception is thrown
+                        if (e == null) {
+                            // the record was successfully sent
+                            log.info("Received new metadata \n" +
+                                    "Topic: " + metadata.topic() + "\n" +
+                                    "Partition: " + metadata.partition() + "\n" +
+                                    "Offset: " + metadata.offset() + "\n" +
+                                    "Timestamp: " + metadata.timestamp() + "\n");
+                        } else {
+                            log.error("Error while producing", e);
+                        }
+                    }
+                });
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        // flush: tell the producer to send all data and block until done -- synchronous
+        producer.flush();
+
+        // close the producer
+        producer.close();
+    }
+}
+```
+
+### 7.3. Running the Callback Producer
+
+To run this code, follow these steps:
+
+1. **Start Zookeeper** and **Kafka** as described in section 2.
+2. **Create the topic** `demo_java` if not already created.
+3. **Run the `ProducerDemoWithCallback`** class from IntelliJ IDEA.
+4. **Monitor the output** to see which partitions the messages are sent to and verify the Sticky Partitioner behavior.

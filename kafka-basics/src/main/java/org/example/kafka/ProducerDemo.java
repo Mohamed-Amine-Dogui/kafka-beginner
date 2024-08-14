@@ -12,7 +12,7 @@ public class ProducerDemo {
 
     private static final Logger log = LoggerFactory.getLogger(ProducerDemo.class.getSimpleName());
     public static void main(String[] args) {
-        log.info("Hello world");
+        log.info("I'm a Kafka Producer!");
 
         // create Producer Properties
         Properties properties = new Properties();
@@ -40,7 +40,6 @@ public class ProducerDemo {
 
         // send data
         producer.send(producerRecord);
-
 
 
         //  flush: tell the producer to send all data and block until done --synchronous
