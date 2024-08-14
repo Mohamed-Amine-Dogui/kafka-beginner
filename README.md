@@ -47,10 +47,10 @@ Before starting, make sure you have the following tools installed:
 
 ### 1.2.2. Configure Project Settings
 
-1. Name the project (e.g., `kafka-beginners-course`).
+1. Name the project (e.g., `kafka-beginner`).
 2. Specify a location on your computer for the project files.
 3. Set the **GroupId** to `org.example`.
-4. Keep the **ArtifactId** as `kafka-beginners-course`.
+4. Keep the **ArtifactId** as `kafka-beginner`.
 5. Set the version as `1.0-SNAPSHOT`.
 6. Click **Finish** to create the project.
 
@@ -60,7 +60,7 @@ Before starting, make sure you have the following tools installed:
 
 1. After creating the project, Gradle will synchronize the project structure.
 2. **Delete** the default `src/main` and `src/test` directories. These will be replaced with subprojects.
-3. Right-click on the project root (`kafka-beginners-course`), then select **New > Module**.
+3. Right-click on the project root (`kafka-beginner`), then select **New > Module**.
 4. Select **Gradle** as the module type, choose **Java** as the language, and click **Next**.
 5. Name this module `kafka-basics`, and keep the **GroupId** as `org.example`.
 6. Finish setting up the module.
