@@ -302,11 +302,13 @@ When producing messages to Kafka, you can use a callback mechanism to confirm wh
 
 Here’s a visual representation of how the **Sticky Partitioner** works compared to the **RoundRobin Partitioner**:
 
+**Sticky Partitioner:**
+![Sticky Partitioner](./images/sticky_partitioner.png)
+
 **RoundRobin Partitioner:**
 ![RoundRobin Partitioner](./images/round_robin.png)
 
-**Sticky Partitioner:**
-![Sticky Partitioner](./images/sticky_partitioner.png)
+
 
 ### 7.2. Code Implementation
 
