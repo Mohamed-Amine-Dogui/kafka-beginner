@@ -594,4 +594,4 @@ We configured the consumer with the following properties:
 
 This consumer is set up to continuously poll Kafka and log any incoming messages. It will display the key, value, partition, and offset for each message it consumes. This setup ensures that your consumer is always ready to process incoming messages from the `demo_java` topic.
 
-By running this consumer, you can observe the messages produced by your Kafka producer in real-time, making it an essential tool for understanding the flow of data within Kafka.
+By running this consumer, you can observe the messages produced by your Kafka producer in real-time.
