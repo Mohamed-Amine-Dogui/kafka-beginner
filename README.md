@@ -36,7 +36,10 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
    1. [Sending Messages with Keys](#81-sending-messages-with-keys)
    2. [Code Implementation](#82-code-implementation)
    3. [Verifying Key-Based Partitioning](#83-verifying-key-based-partitioning)
-
+9. [Creating Your First Kafka Consumer](#9-creating-your-first-kafka-consumer)
+   1. [Setting Up the Kafka Consumer](#91-setting-up-the-kafka-consumer)
+   2. [Subscribing to a Topic and Polling for Data](#92-subscribing-to-a-topic-and-polling-for-data)
+   3. [Code Implementation](#93-code-implementation)
 ---
 
 ## 1.1. Prerequisites
@@ -503,3 +506,104 @@ public class ProducerDemoKeys {
 When you run this code, you will notice that messages with the same key are consistently sent to the same partition. This is a crucial feature for maintaining message order when processing data in Kafka.
 
 To observe this behavior, run the `ProducerDemoKeys` class and check the console output. You should see that the same keys always go to the same partition, as illustrated by the log messages.
+
+
+## 9. Creating Your First Kafka Consumer
+
+### 9.1. Setting Up the Kafka Consumer
+
+In this section, we will write a Kafka consumer using the Java API to receive messages from Kafka. We'll go over basic configuration parameters and confirm that our consumer receives data from the Kafka producer we wrote earlier.
+
+To start, create a new Java class called `ConsumerDemo`:
+
+```java
+package org.example.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Properties;
+
+public class ConsumerDemo {
+
+   private static final Logger log = LoggerFactory.getLogger(ConsumerDemo.class.getSimpleName());
+   public static void main(String[] args) {
+      log.info("I'm a Kafka Consumer!");
+
+      String groupId = "my-java-application";
+      String topic = "demo_java";
+
+      // create Producer Properties
+      Properties properties = new Properties();
+
+      //connect to localhost
+      properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
+
+      //connect to Conduktor playground
+//        properties.setProperty("bootstrap.server", "cluster.playground.cdkt.io:9092");
+//        properties.setProperty("security.protocol", "SASL_SSL");
+//        properties.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required  username=\"alice\" password=\"alice-secret\";");
+//        properties.setProperty("sasl.mechanism", "PLAIN");
+
+
+      // set Producer properties
+      properties.setProperty("key.serializer", StringSerializer.class.getName());
+      properties.setProperty("value.serializer", StringSerializer.class.getName());
+
+
+      // create consumer configs
+      properties.setProperty("key.deserializer", StringDeserializer.class.getName());
+      properties.setProperty("value.deserializer", StringDeserializer.class.getName());
+
+      properties.setProperty("group.id", groupId);
+
+      properties.setProperty("auto.offset.reset", "earliest"); // Earliest means read from the beginning of my topic. This corresponds to --beginning option in kafka cli
+//      properties.setProperty("auto.offset.reset", "none"); // None means that if we don't have any existing consumer group, then we fail. That means that we must set the consumer group before starting the application
+//      properties.setProperty("auto.offset.reset", "latest"); //  Read from just now and only read the new messages sent from now.
+
+      // create a consumer
+      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+
+      // subscribe to a topic
+      consumer.subscribe(Arrays.asList(topic));
+
+      // poll for data
+      while (true){
+
+         log.info("Polling");
+         ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+
+         for (ConsumerRecord<String, String> record: records){
+            log.info("Key: "+ record.key() + ", Value: " + record.value());
+            log.info("Partition: "+ record.partition() + ", Offset: " + record.offset());
+         }
+      }
+   }
+}
+```
+
+### 9.2. Subscribing to a Topic and Polling for Data
+
+In the above code, the consumer is configured to connect to Kafka running on `localhost:9092` and is set to consume from the `demo_java` topic. The consumer will poll Kafka every second, waiting for any new data.
+
+We configured the consumer with the following properties:
+
+- **bootstrap.servers**: The Kafka broker address.
+- **key.deserializer** and **value.deserializer**: These are used to deserialize the messages' keys and values, respectively.
+- **group.id**: The consumer group ID, which allows multiple consumers to share the load.
+- **auto.offset.reset**: Configured to `earliest` to ensure the consumer reads from the beginning of the topic if there are no committed offsets.
+
+### 9.3. Code Implementation
+
+This consumer is set up to continuously poll Kafka and log any incoming messages. It will display the key, value, partition, and offset for each message it consumes. This setup ensures that your consumer is always ready to process incoming messages from the `demo_java` topic.
+
+By running this consumer, you can observe the messages produced by your Kafka producer in real-time, making it an essential tool for understanding the flow of data within Kafka.
