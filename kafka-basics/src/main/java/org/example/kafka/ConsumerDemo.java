@@ -29,19 +29,7 @@ public class ConsumerDemo {
         //connect to localhost
         properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
 
-        //connect to Conduktor playground
-//        properties.setProperty("bootstrap.server", "cluster.playground.cdkt.io:9092");
-//        properties.setProperty("security.protocol", "SASL_SSL");
-//        properties.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required  username=\"alice\" password=\"alice-secret\";");
-//        properties.setProperty("sasl.mechanism", "PLAIN");
-
-
-        // set Producer properties
-        properties.setProperty("key.serializer", StringSerializer.class.getName());
-        properties.setProperty("value.serializer", StringSerializer.class.getName());
-
-
-        // create consumer configs
+        // create consumer properties
         properties.setProperty("key.deserializer", StringDeserializer.class.getName());
         properties.setProperty("value.deserializer", StringDeserializer.class.getName());
 

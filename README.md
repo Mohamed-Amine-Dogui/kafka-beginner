@@ -548,12 +548,7 @@ public class ConsumerDemo {
       //connect to localhost
       properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
 
-      // set Producer properties
-      properties.setProperty("key.serializer", StringSerializer.class.getName());
-      properties.setProperty("value.serializer", StringSerializer.class.getName());
-
-
-      // create consumer configs
+      // create consumer properties
       properties.setProperty("key.deserializer", StringDeserializer.class.getName());
       properties.setProperty("value.deserializer", StringDeserializer.class.getName());
 
