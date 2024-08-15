@@ -23,7 +23,7 @@ public class ConsumerDemo {
         String groupId = "my-java-application";
         String topic = "demo_java";
 
-        // create Producer Properties
+        // create Consumer Properties
         Properties properties = new Properties();
 
         //connect to localhost
