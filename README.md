@@ -687,7 +687,7 @@ public class ConsumerDemoWithShutdown {
         }catch (WakeupException e) {
             log.info("Consumer is starting to shut down...");
         }catch (Exception e) {
-            log.info("Unexpected exception in the consumer", e);
+            log.error("Unexpected exception in the consumer", e);
         } finally {
             consumer.close(); // close the consumer and commit the offsets
             log.info("The consumer is now gracefully shut down");
