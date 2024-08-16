@@ -1,6 +1,13 @@
-# 1. Kafka Java Project Setup Guide
+# Kafka Java Project Setup Guide
 
 This guide will walk you through setting up a Kafka project using Java, Gradle, and IntelliJ IDEA, including all necessary dependencies and initial configurations.
+
+### Additional Resources
+
+For more comprehensive information about Apache Kafka, you can refer to the following resource:
+
+- [What is Apache Kafka?](https://www.conduktor.io/kafka/what-is-apache-kafka/) - A detailed guide by Conduktor that provides an in-depth overview of Apache Kafka, its architecture, use cases, and more.
+
 
 ### Table of Contents
 
