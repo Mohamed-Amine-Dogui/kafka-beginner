@@ -43,6 +43,11 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
    4. [Adding a Shutdown Hook to the Kafka Consumer](#44-adding-a-shutdown-hook-to-the-kafka-consumer)
       1. [Setting Up a Graceful Shutdown](#441-setting-up-a-graceful-shutdown)
       2. [Code Implementation](#442-code-implementation)
+   5. [Kafka Consumer Rebalancing Strategies](#45-kafka-consumer-rebalancing-strategies)
+      1. [Eager Rebalancing](#451-eager-rebalancing)
+      2. [Cooperative Rebalancing](#452-cooperative-rebalancing)
+      3. [Implementing Kafka Consumer with Cooperative Rebalancing](#453-implementing-kafka-consumer-with-cooperative-rebalancing)
+      4. [Static Group Membership](#454-static-group-membership)
 ---
 
 ## 1.1 Prerequisites
@@ -738,6 +743,7 @@ package org.example.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -748,78 +754,76 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 
-public class ConsumerDemoWithCooperativeRebalance {
+public class ConsumerDemoCooperative {
 
-    private static final Logger log = LoggerFactory.getLogger(ConsumerDemoWithCooperativeRebalance.class.getSimpleName());
-    public static void main(String[] args) {
-        log.info("I'm a Kafka Consumer!");
+   private static final Logger log = LoggerFactory.getLogger(ConsumerDemoCooperative.class.getSimpleName());
+   public static void main(String[] args) {
+      log.info("I'm a Kafka Consumer!");
 
-        String groupId = "my-java-application";
-        String topic = "demo_java";
+      String groupId = "my-java-application";
+      String topic = "demo_java";
 
-        // create Consumer Properties
-        Properties properties = new Properties();
+      // create Consumer Properties
+      Properties properties = new Properties();
 
-        //connect to localhost
-        properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
+      //connect to localhost
+      properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
 
-        // set deserializers
-        properties.setProperty("key.deserializer", StringDeserializer.class.getName());
-        properties.setProperty("value.deserializer", StringDeserializer.class.getName());
+      // create consumer properties
+      properties.setProperty("key.deserializer", StringDeserializer.class.getName());
+      properties.setProperty("value.deserializer", StringDeserializer.class.getName());
+      properties.setProperty("group.id", groupId);
+      properties.setProperty("auto.offset.reset", "earliest"); // Earliest means read from the beginning of my topic. This corresponds to --beginning option in kafka cli
 
-        // set group ID
-        properties.setProperty("group.id", groupId);
+      // set partition assignment strategy to cooperative rebalance
+      properties.setProperty("partition.assignment.strategy", CooperativeStickyAssignor.class.getName());
 
-        // set partition assignment strategy to cooperative rebalance
-        properties.setProperty("partition.assignment.strategy", "org.apache.kafka.clients.consumer.CooperativeStickyAssignor");
+      // create a consumer
+      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
 
-        properties.setProperty("auto.offset.reset", "earliest");
+      // get a reference to the main thread
+      final  Thread mainThread = Thread.currentThread();
 
-        // create a consumer
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+      // adding the shutdown hook
+      Runtime.getRuntime().addShutdownHook(new Thread(){
+         public void run() {
+            log.info("Detected a shutdown, let's exit by calling consumer.wakeup()...");
+            consumer.wakeup();
 
-        // get a reference to the main thread
-        final  Thread mainThread = Thread.currentThread();
-
-        // adding the shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread(){
-            public void run() {
-                log.info("Detected a shutdown, let's exit by calling consumer.wakeup()...");
-                consumer.wakeup();
-
-                // join the main thread to allow the execution of the code in the main thread
-                try {
-                    mainThread.join();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+            // join the main thread to allow the execution of the code in the main thread
+            try {
+               mainThread.join();
+            } catch (InterruptedException e) {
+               throw new RuntimeException(e);
             }
-        });
+         }
+      });
 
-        try {
-            // subscribe to a topic
-            consumer.subscribe(Arrays.asList(topic));
+      try {
+         // subscribe to a topic
+         consumer.subscribe(Arrays.asList(topic));
 
-            // poll for data
-            while (true) {
-                log.info("Polling");
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+         // poll for data
+         while (true) {
 
-                for (ConsumerRecord<String, String> record : records) {
-                    log.info("Key: " + record.key() + ", Value: " + record.value());
-                    log.info("Partition: " + record.partition() + ", Offset: " + record.offset());
-                }
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+
+            for (ConsumerRecord<String, String> record : records) {
+               log.info("Key: " + record.key() + ", Value: " + record.value());
+               log.info("Partition: " + record.partition() + ", Offset: " + record.offset());
             }
-        }catch (WakeupException e) {
-            log.info("Consumer is starting to shut down...");
-        }catch (Exception e) {
-            log.error("Unexpected exception in the consumer", e);
-        } finally {
-            consumer.close(); // close the consumer and commit the offsets
-            log.info("The consumer is now gracefully shut down");
-        }
-    }
+         }
+      }catch (WakeupException e) {
+         log.info("Consumer is starting to shut down...");
+      }catch (Exception e) {
+         log.error("Unexpected exception in the consumer", e);
+      } finally {
+         consumer.close(); // close the consumer and commit the offsets
+         log.info("The consumer is now gracefully shut down");
+      }
+   }
 }
+
 ```
 
 ### 4.5.4 Static Group Membership
@@ -827,9 +831,5 @@ public class ConsumerDemoWithCooperativeRebalance {
 Kafka offers a feature called Static Group Membership, which allows consumers to retain their partition assignments even if they temporarily leave the group. This is particularly useful in environments where consumers are frequently restarted, such as in Kubernetes deployments. By assigning a `group.instance.id` to each consumer, you can ensure that partitions are not reassigned if a consumer reconnects within the session timeout period.
 
 ![Static Group Membership](./images/Static_Group_Membership.png)
-
-### 4.5.5 Summary
-
-Understanding the difference between eager and cooperative rebalancing strategies is crucial for optimizing the performance of Kafka consumer groups. By implementing cooperative rebalancing and static group membership, you can minimize the disruption caused by consumer rebalances, leading to more stable and efficient processing.
 
 
