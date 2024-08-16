@@ -709,3 +709,127 @@ public class ConsumerDemoWithShutdown {
 ### Running the Consumer with Shutdown Hook
 
 When you run the `ConsumerDemoWithShutdown` class, the consumer will start normally and poll for data. If you terminate the application (e.g., by stopping it in your IDE or pressing Ctrl+C in the terminal), the shutdown hook will ensure that the consumer exits cleanly, commits offsets, and leaves the consumer group gracefully.
+
+To add the images you uploaded to the README, you should reference them using Markdown syntax. Here's how you can incorporate the images into the new sub-chapter in your README file:
+
+
+## 4.5 Kafka Consumer Rebalancing Strategies
+
+When working with Kafka consumer groups, it's essential to understand how rebalancing works when consumers join or leave the group. Rebalancing ensures that partitions are evenly distributed among consumers, but the strategy used can significantly impact the performance and behavior of your consumer group.
+
+### 4.5.1 Eager Rebalancing
+
+Eager rebalancing is one of the default strategies used by Kafka. When a new consumer joins or leaves the group, all consumers stop processing, and all partitions are revoked and reassigned. This "stop-the-world" event can lead to temporary pauses in message consumption.
+
+![Eager Rebalancing](./images/Consumer_Eager_Rebalancing.png)
+
+### 4.5.2 Cooperative Rebalancing
+
+Cooperative rebalancing, on the other hand, is a more recent and refined approach. Instead of revoking all partitions, only the necessary partitions are revoked and reassigned incrementally. This allows some consumers to continue processing while the rebalance occurs, reducing disruption.
+
+![Cooperative Rebalancing](./images/Consumer_Cooperative_Rebalance.png)
+
+### 4.5.3 Implementing Kafka Consumer with Cooperative Rebalancing
+
+To implement cooperative rebalancing in your Kafka consumer, you need to set the partition assignment strategy in the Kafka Consumer configuration. Below is a sample script that demonstrates how to set this up:
+
+```java
+package org.example.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.WakeupException;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Properties;
+
+public class ConsumerDemoWithCooperativeRebalance {
+
+    private static final Logger log = LoggerFactory.getLogger(ConsumerDemoWithCooperativeRebalance.class.getSimpleName());
+    public static void main(String[] args) {
+        log.info("I'm a Kafka Consumer!");
+
+        String groupId = "my-java-application";
+        String topic = "demo_java";
+
+        // create Consumer Properties
+        Properties properties = new Properties();
+
+        //connect to localhost
+        properties.setProperty("bootstrap.servers", "127.0.0.1:9092");
+
+        // set deserializers
+        properties.setProperty("key.deserializer", StringDeserializer.class.getName());
+        properties.setProperty("value.deserializer", StringDeserializer.class.getName());
+
+        // set group ID
+        properties.setProperty("group.id", groupId);
+
+        // set partition assignment strategy to cooperative rebalance
+        properties.setProperty("partition.assignment.strategy", "org.apache.kafka.clients.consumer.CooperativeStickyAssignor");
+
+        properties.setProperty("auto.offset.reset", "earliest");
+
+        // create a consumer
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+
+        // get a reference to the main thread
+        final  Thread mainThread = Thread.currentThread();
+
+        // adding the shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            public void run() {
+                log.info("Detected a shutdown, let's exit by calling consumer.wakeup()...");
+                consumer.wakeup();
+
+                // join the main thread to allow the execution of the code in the main thread
+                try {
+                    mainThread.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        try {
+            // subscribe to a topic
+            consumer.subscribe(Arrays.asList(topic));
+
+            // poll for data
+            while (true) {
+                log.info("Polling");
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+
+                for (ConsumerRecord<String, String> record : records) {
+                    log.info("Key: " + record.key() + ", Value: " + record.value());
+                    log.info("Partition: " + record.partition() + ", Offset: " + record.offset());
+                }
+            }
+        }catch (WakeupException e) {
+            log.info("Consumer is starting to shut down...");
+        }catch (Exception e) {
+            log.error("Unexpected exception in the consumer", e);
+        } finally {
+            consumer.close(); // close the consumer and commit the offsets
+            log.info("The consumer is now gracefully shut down");
+        }
+    }
+}
+```
+
+### 4.5.4 Static Group Membership
+
+Kafka offers a feature called Static Group Membership, which allows consumers to retain their partition assignments even if they temporarily leave the group. This is particularly useful in environments where consumers are frequently restarted, such as in Kubernetes deployments. By assigning a `group.instance.id` to each consumer, you can ensure that partitions are not reassigned if a consumer reconnects within the session timeout period.
+
+![Static Group Membership](./images/Static_Group_Membership.png)
+
+### 4.5.5 Summary
+
+Understanding the difference between eager and cooperative rebalancing strategies is crucial for optimizing the performance of Kafka consumer groups. By implementing cooperative rebalancing and static group membership, you can minimize the disruption caused by consumer rebalances, leading to more stable and efficient processing.
+
+
