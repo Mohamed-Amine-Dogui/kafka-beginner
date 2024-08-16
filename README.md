@@ -46,7 +46,7 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
 ---
 
 
-## 1.1. Prerequisites
+## 1.1 Prerequisites
 
 Before starting, make sure you have the following tools installed:
 
@@ -54,7 +54,7 @@ Before starting, make sure you have the following tools installed:
 - **Java 11 JDK**: Recommended is Amazon Corretto 11, but any Java 11 distribution should work.
 - **Gradle**: Build automation tool used for managing dependencies and building the project.
 
-## 1.2. Setting Up the Project
+## 1.2 Setting Up the Project
 
 ### 1.2.1. Create a New Project in IntelliJ IDEA
 
@@ -144,11 +144,11 @@ public class ProducerDemo {
 
 ---
 
-## 2. Starting Kafka and Creating a Topic
+# 2. Starting Kafka and Creating a Topic
 
 Before running the Kafka producer, you need to start Zookeeper and Kafka, and then create the topic you'll be sending messages to.
 
-### 2.1. Start Zookeeper
+## 2.1 Start Zookeeper
 
 Start Zookeeper by running the following command:
 
@@ -156,7 +156,7 @@ Start Zookeeper by running the following command:
 zookeeper-server-start.sh ~/kafka_2.13-3.8.0/config/zookeeper.properties
 ```
 
-### 2.2. Start Kafka
+## 2.2 Start Kafka
 
 Once Zookeeper is running, start the Kafka broker:
 
@@ -164,7 +164,7 @@ Once Zookeeper is running, start the Kafka broker:
 kafka-server-start.sh ~/kafka_2.13-3.8.0/config/server.properties
 ```
 
-### 2.3. Create the Kafka Topic
+## 2.3 Create the Kafka Topic
 
 Create the topic `demo_java` where the producer will send messages:
 
@@ -176,9 +176,9 @@ This command creates a topic named `demo_java` with 3 partitions and a replicati
 
 ---
 
-## 3. Creating Your First Kafka Producer
+# 3. Creating Your First Kafka Producer
 
-### 3.1. Setup Producer Properties
+## 3.1 Setup Producer Properties
 
 In your `ProducerDemo` class, you will first define the properties required to configure your Kafka producer. These properties include the bootstrap server and serializers for keys and values.
 
@@ -194,7 +194,7 @@ properties.setProperty("key.serializer", StringSerializer.class.getName());
 properties.setProperty("value.serializer", StringSerializer.class.getName());
 ```
 
-### 3.2. Create and Configure the Producer
+## 3.2 Create and Configure the Producer
 
 With the properties set, you can now create and configure the Kafka producer. The producer will be responsible for sending messages to a specific Kafka topic.
 
@@ -203,7 +203,7 @@ With the properties set, you can now create and configure the Kafka producer. Th
 KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
 ```
 
-### 3.3. Send Data to Kafka
+## 3.3 Send Data to Kafka
 
 Create a producer record that contains the topic name and the message you want to send. Then, use the producer to send this record to the Kafka broker.
 
@@ -224,7 +224,7 @@ producer.close();
 
 ---
 
-## 4. Verifying Data Reception
+## 3.4 Verifying Data Reception
 
 To confirm that the data was successfully sent to Kafka, you can use a Kafka Console Consumer. Open a terminal and run the following command:
 
@@ -236,7 +236,7 @@ This command will display all messages sent to the `demo_java` topic, including 
 
 ---
 
-## 5. Running the Producer
+## 3.5 Running the Producer
 
 1. Ensure that your Kafka broker is running on `localhost:9092`.
 2. Run the `ProducerDemo` class from IntelliJ IDEA.
@@ -246,7 +246,7 @@ running to verify that the message has been received.
 
 ---
 
-## 6. Code Overview
+## 3.6 Code Overview
 
 Here is the complete code for your `ProducerDemo` class:
 
@@ -305,9 +305,9 @@ public class ProducerDemo {
 }
 ```
 
-## 7. Implementing a Kafka Producer with Callbacks
+## 3.7 Implementing a Kafka Producer with Callbacks
 
-### 7.1. Understanding Kafka's Sticky Partitioner
+### 3.7.1 Understanding Kafka's Sticky Partitioner
 
 When producing messages to Kafka, you can use a callback mechanism to confirm whether the message was successfully sent and to which partition and offset it was sent. Additionally, Kafka's producer uses a feature called the **Sticky Partitioner** to improve performance by batching messages that are sent in quick succession to the same partition.
 
@@ -321,7 +321,7 @@ Here’s a visual representation of how the **Sticky Partitioner** works compare
 
 
 
-### 7.2. Code Implementation
+### 3.7.2 Code Implementation
 
 Below is the code for implementing a Kafka producer with callbacks to demonstrate the Sticky Partitioner:
 
@@ -406,7 +406,7 @@ public class ProducerDemoWithCallback {
 }
 ```
 
-### 3.7.3. Running the Callback Producer
+### 3.7.3 Running the Callback Producer
 
 To run this code, follow these steps:
 
