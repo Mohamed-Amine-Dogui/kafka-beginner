@@ -406,7 +406,7 @@ public class ProducerDemoWithCallback {
 }
 ```
 
-### 7.3. Running the Callback Producer
+### 3.7.3. Running the Callback Producer
 
 To run this code, follow these steps:
 
@@ -415,13 +415,13 @@ To run this code, follow these steps:
 3. **Run the `ProducerDemoWithCallback`** class from IntelliJ IDEA.
 4. **Monitor the output** to see which partitions the messages are sent to and verify the Sticky Partitioner behavior.
 
-## 8. Kafka Producer with Keys
+## 3.8 Kafka Producer with Keys
 
-### 8.1. Sending Messages with Keys
+### 3.8.1 Sending Messages with Keys
 
 In Kafka, when you send messages with non-null keys, those messages with the same key are consistently routed to the same partition. This behavior is particularly useful when you need ordering guarantees for messages with the same key.
 
-### 8.2. Code Implementation
+### 3.8.2 Code Implementation
 
 Here is the code for a Kafka producer that sends messages with keys:
 
@@ -505,16 +505,16 @@ public class ProducerDemoKeys {
 }
 ```
 
-### 8.3. Verifying Key-Based Partitioning
+### 3.8.3 Verifying Key-Based Partitioning
 
 When you run this code, you will notice that messages with the same key are consistently sent to the same partition. This is a crucial feature for maintaining message order when processing data in Kafka.
 
 To observe this behavior, run the `ProducerDemoKeys` class and check the console output. You should see that the same keys always go to the same partition, as illustrated by the log messages.
 
 
-## 9. Creating Your First Kafka Consumer
+# 4. Creating Your First Kafka Consumer
 
-### 9.1. Setting Up the Kafka Consumer
+## 4.2 Setting Up the Kafka Consumer
 
 In this section, we will write a Kafka consumer using the Java API to receive messages from Kafka. We'll go over basic configuration parameters and confirm that our consumer receives data from the Kafka producer we wrote earlier.
 
@@ -583,7 +583,7 @@ public class ConsumerDemo {
 }
 ```
 
-### 9.2. Subscribing to a Topic and Polling for Data
+## 4.2 Subscribing to a Topic and Polling for Data
 
 In the above code, the consumer is configured to connect to Kafka running on `localhost:9092` and is set to consume from the `demo_java` topic. The consumer will poll Kafka every second, waiting for any new data.
 
@@ -594,21 +594,21 @@ We configured the consumer with the following properties:
 - **group.id**: The consumer group ID, which allows multiple consumers to share the load.
 - **auto.offset.reset**: Configured to `earliest` to ensure the consumer reads from the beginning of the topic if there are no committed offsets.
 
-### 9.3. Code Interpretation
+## 4.3 Code Interpretation
 
 This consumer is set up to continuously poll Kafka and log any incoming messages. It will display the key, value, partition, and offset for each message it consumes. This setup ensures that your consumer is always ready to process incoming messages from the `demo_java` topic.
 
 By running this consumer, you can observe the messages produced by your Kafka producer in real-time.
 
-## 10. Adding a Shutdown Hook to the Kafka Consumer
+## 4.4 Adding a Shutdown Hook to the Kafka Consumer
 
-### 10.1. Setting Up a Graceful Shutdown
+### 4.4.1 Setting Up a Graceful Shutdown
 
 In this section, we'll enhance our Kafka consumer to handle shutdowns gracefully. This involves adding a shutdown hook that ensures the consumer closes properly, commits offsets, and leaves the consumer group gracefully. This is crucial in real-world applications to avoid leaving the consumer group in an inconsistent state.
 
 To begin, we'll duplicate our `ConsumerDemo` class and modify it to include a shutdown hook.
 
-### 10.2. Code Implementation
+### 4.4.2 Code Implementation
 
 Here is the updated code for `ConsumerDemoWithShutdown`:
 
