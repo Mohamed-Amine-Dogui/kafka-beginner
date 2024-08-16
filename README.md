@@ -45,7 +45,6 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
       2. [Code Implementation](#442-code-implementation)
 ---
 
-
 ## 1.1 Prerequisites
 
 Before starting, make sure you have the following tools installed:
