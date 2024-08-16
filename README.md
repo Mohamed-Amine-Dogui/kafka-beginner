@@ -304,7 +304,7 @@ public class ProducerDemo {
 }
 ```
 
-#### 7. Implementing a Kafka Producer with Callbacks
+## 7. Implementing a Kafka Producer with Callbacks
 
 ### 7.1. Understanding Kafka's Sticky Partitioner
 
