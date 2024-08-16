@@ -39,11 +39,12 @@ This guide will walk you through setting up a Kafka project using Java, Gradle, 
 9. [Creating Your First Kafka Consumer](#9-creating-your-first-kafka-consumer)
    1. [Setting Up the Kafka Consumer](#91-setting-up-the-kafka-consumer)
    2. [Subscribing to a Topic and Polling for Data](#92-subscribing-to-a-topic-and-polling-for-data)
-   3. [Code Implementation](#93-code-implementation)
+   3. [Code Interpretation](#93-code-interpretation)
 10. [Adding a Shutdown Hook to the Kafka Consumer](#10-adding-a-shutdown-hook-to-the-kafka-consumer)
-1. [Setting Up a Graceful Shutdown](#101-setting-up-a-graceful-shutdown)
-2. [Code Implementation](#102-code-implementation)
+11. [Setting Up a Graceful Shutdown](#101-setting-up-a-graceful-shutdown)
+12. [Code Implementation](#102-code-implementation)
 ---
+
 
 ## 1.1. Prerequisites
 
@@ -593,7 +594,7 @@ We configured the consumer with the following properties:
 - **group.id**: The consumer group ID, which allows multiple consumers to share the load.
 - **auto.offset.reset**: Configured to `earliest` to ensure the consumer reads from the beginning of the topic if there are no committed offsets.
 
-### 9.3. Code Implementation
+### 9.3. Code Interpretation
 
 This consumer is set up to continuously poll Kafka and log any incoming messages. It will display the key, value, partition, and offset for each message it consumes. This setup ensures that your consumer is always ready to process incoming messages from the `demo_java` topic.
 
